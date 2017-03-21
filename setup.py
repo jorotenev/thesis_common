@@ -21,6 +21,6 @@ setup(
         'Programming Language :: Python :: 3.5',
     ],
     packages=find_packages(),
-    install_requires=['python-dateutils']
+    install_requires=['python-dateutil']
 
 )
