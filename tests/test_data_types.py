@@ -26,7 +26,8 @@ def create_raw_measurement():
         number_of_people=10,
         measurement_type=VenueStreamType.ABSOLUTE,
         venue_id="Gym1",
-        timestamp_utc=dt.utcnow()
+        timestamp_utc=dt.utcnow(),
+        metadata={'venue_token': '123'}
     )
 
 

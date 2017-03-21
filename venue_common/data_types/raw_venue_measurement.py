@@ -7,10 +7,6 @@ import datetime
 
 from .enums import VenueStreamType, EventStreamOperator
 
-EVENT_OPERATOR_KEY = "direction"
-EVENT_OPERATOR_PLUS = "plus"
-EVENT_OPERATOR_MINUS = "minus"
-
 
 class RawVenueMeasurement(object):
     """
@@ -19,7 +15,7 @@ class RawVenueMeasurement(object):
     make it easy to searialize and deserialize the contents.
     """
 
-    def __init__(self, venue_id, timestamp_utc, number_of_people, measurement_type, operator=None):
+    def __init__(self, venue_id, timestamp_utc, number_of_people, measurement_type, operator=None, metadata={}):
         """
         :param venue_id - the name of the venue. str.
         :param timestamp_utc - the UTC time at which the measurement was made. datetime
@@ -31,6 +27,8 @@ class RawVenueMeasurement(object):
         :param operator - only needed if `measurement_type` is STREAM, not needed if it is ABSOLUTE.
         in the case of stream of type event, the operator says if we should add/subtract :number_of_people
         :type EventStreamOperator
+        :param metadata - any additional metadata
+        :type dict
         :raises ValueError - if the arguments passed are invalid
         """
 
@@ -39,6 +37,7 @@ class RawVenueMeasurement(object):
         self.measurement_type = measurement_type
         self.operator = operator
         self.number_of_people = number_of_people
+        self.metadata = metadata
 
         # raise an exception if input data is not good
         self._validate_input()
@@ -77,5 +76,8 @@ class RawVenueMeasurement(object):
                 assert type(self.operator) is EventStreamOperator
             else:
                 raise ValueError("Unsupported member of the VenueStreamType enum")
+
+            if self.metadata:
+                assert type(self.metadata) is dict
         except Exception as ex:
             raise ValueError("Validation of input failed. Reason: %s" % str(ex))
