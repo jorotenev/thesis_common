@@ -46,3 +46,39 @@ class TestRawVenueMeasurement(TestCase):
 
     def test_ensure_timestamp_is_utc(self):
         self.assertFalse(False)
+
+    def test_try_invalid_input(self):
+        with self.assertRaises(ValueError) as context:
+            RawVenueMeasurement(
+                number_of_people="this should be a number",
+                measurement_type=VenueStreamType.ABSOLUTE,
+                venue_id="Gym1",
+                timestamp_utc=dt.utcnow(),
+            )
+        self.assertIn("int", str(context.exception))
+        with self.assertRaises(ValueError) as context:
+            RawVenueMeasurement(
+                number_of_people=10,
+                measurement_type="this should be an enum",
+                venue_id="Gym1",
+                timestamp_utc=dt.utcnow(),
+            )
+        self.assertIn("VenueStreamType", str(context.exception))
+
+        with self.assertRaises(ValueError) as context:
+            RawVenueMeasurement(
+                number_of_people=10,
+                measurement_type=VenueStreamType.ABSOLUTE,
+                venue_id=12313,  # this should be a string
+                timestamp_utc=dt.utcnow(),
+            )
+        self.assertIn("str", str(context.exception))
+
+        with self.assertRaises(ValueError) as context:
+            RawVenueMeasurement(
+                number_of_people=10,
+                measurement_type=VenueStreamType.ABSOLUTE,
+                venue_id="Gym1",
+                timestamp_utc='this should be a datetime'
+            )
+        self.assertIn("datetime", str(context.exception))

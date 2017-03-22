@@ -61,30 +61,40 @@ class RawVenueMeasurement(object):
        """
 
         try:
-            if type(self.venue_id) is not str:
-                raise ValueError("venue_id should be string")
+            expected_type(str, self.venue_id, "venue_id")
+            expected_type(datetime.datetime, self.timestamp_utc, "timestamp_utc")
 
-            if type(self.timestamp_utc) is not datetime.datetime:
-                raise ValueError("timestamp_utc should be datetime.datetime")
+            expected_type(VenueStreamType, self.measurement_type, "measurement_type")
 
-            if type(self.measurement_type) is not VenueStreamType:
-                raise ValueError("measurement_type should be VenueStreamType")
-
-            if type(self.number_of_people) is not int:
-                raise ValueError("number_of_people should be int")
+            expected_type(int, self.number_of_people, "number_of_people")
 
             if self.measurement_type is VenueStreamType.ABSOLUTE:
                 pass
 
             elif self.measurement_type is VenueStreamType.EVENT:
-                if type(self.operator) is not EventStreamOperator:
-                    raise ValueError("operator should be EventStreamOperator")
+                expected_type(EventStreamOperator, self.operator, "operator")
             else:
                 raise ValueError("Unsupported member of the VenueStreamType enum")
 
             if self.metadata:
-                if type(self.metadata) is not dict:
-                    raise ValueError("metadata should be a dict")
+                expected_type(dict, self.metadata, "metadata")
 
         except Exception as ex:
             raise ValueError("Validation of input failed. Reason: %s" % str(ex))
+
+
+def expected_type(expected, variable, var_name):
+    """
+    Verify the type of a variable
+    :param expected: type
+    :param variable: some variable
+    :param var_name: the name of the variable, for readibility
+    :return: None
+    :raises TypeErorr - if type(variable) != :expected
+    """
+    if type(variable) is not expected:
+        raise TypeError(
+            "{variable_name} should be {expected_class}. Actual type: {actual_type}".format(
+                variable_name=var_name,
+                expected_class=str(expected.__name__),
+                actual_type=type(variable).__name__))
