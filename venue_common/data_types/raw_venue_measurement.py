@@ -61,23 +61,30 @@ class RawVenueMeasurement(object):
        """
 
         try:
-            assert type(self.venue_id) is str
+            if type(self.venue_id) is not str:
+                raise ValueError("venue_id should be string")
 
-            assert type(self.timestamp_utc) is datetime.datetime
+            if type(self.timestamp_utc) is not datetime.datetime:
+                raise ValueError("timestamp_utc should be datetime.datetime")
 
-            assert type(self.measurement_type) is VenueStreamType
+            if type(self.measurement_type) is not VenueStreamType:
+                raise ValueError("measurement_type should be VenueStreamType")
 
-            assert type(self.number_of_people) is int
+            if type(self.number_of_people) is not int:
+                raise ValueError("number_of_people should be int")
 
             if self.measurement_type is VenueStreamType.ABSOLUTE:
                 pass
 
             elif self.measurement_type is VenueStreamType.EVENT:
-                assert type(self.operator) is EventStreamOperator
+                if type(self.operator) is not EventStreamOperator:
+                    raise ValueError("operator should be EventStreamOperator")
             else:
                 raise ValueError("Unsupported member of the VenueStreamType enum")
 
             if self.metadata:
-                assert type(self.metadata) is dict
+                if type(self.metadata) is not dict:
+                    raise ValueError("metadata should be a dict")
+
         except Exception as ex:
             raise ValueError("Validation of input failed. Reason: %s" % str(ex))
