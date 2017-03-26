@@ -69,7 +69,8 @@ class RawVenueMeasurement(object):
             expected_type(int, self.number_of_people, "number_of_people")
 
             if self.measurement_type is VenueStreamType.ABSOLUTE:
-                pass
+                if self.operator:
+                    raise ValueError("The stream type for the venue doesn't allow passing an Event operator")
 
             elif self.measurement_type is VenueStreamType.EVENT:
                 expected_type(EventStreamOperator, self.operator, "operator")
