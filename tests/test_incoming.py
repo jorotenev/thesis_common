@@ -1,7 +1,8 @@
 from unittest import TestCase
-from thesis_common import *
+from thesis_common import CustomJsonEncoder, deserialize_obj_hook
 from datetime import datetime as dt
 from thesis_common.incoming_pipeline import *
+import json
 
 
 class TestSerializableEnum(TestCase):

@@ -1,7 +1,9 @@
 from thesis_common.learning_pipeline import VenueMeasurementDetached
+from thesis_common import CustomJsonEncoder, deserialize_obj_hook
+
+
 from unittest import TestCase
 from datetime import datetime as dt
-from thesis_common import CustomJsonEncoder, deserialize_obj_hook
 import json
 
 

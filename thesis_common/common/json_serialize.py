@@ -51,7 +51,7 @@ def deserialize_obj_hook(d):
         # initialise an instance of the class and return it
         return managed_serializeable_klass(**dikt)
     elif "__datetime__" in d:
-        return dateutil.parser.parse(d['__datetime__'])
+        return dateutil.parser.parse(d['__datetime__']).replace(tzinfo=None)
     else:
         return d
 
