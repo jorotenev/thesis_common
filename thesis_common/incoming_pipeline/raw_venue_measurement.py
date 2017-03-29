@@ -4,8 +4,8 @@ The data used to construct the objects is the one we received from venues (i.e. 
 This 
 """
 import datetime
-
 from .enums import VenueStreamType, EventStreamOperator
+from thesis_common import make_class_serializable
 
 
 class RawVenueMeasurement(object):
@@ -99,3 +99,6 @@ def expected_type(expected, variable, var_name):
                 variable_name=var_name,
                 expected_class=str(expected.__name__),
                 actual_type=type(variable).__name__))
+
+
+make_class_serializable(RawVenueMeasurement)

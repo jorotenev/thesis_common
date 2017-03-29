@@ -1,0 +1,1 @@
+Common data structures and functionlity to be used by microservices betwen the Gate the to the Historical DB.

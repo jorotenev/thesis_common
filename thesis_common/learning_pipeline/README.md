@@ -1,0 +1,1 @@
+Common data structures and functionlity to be used by microservices within the Pipeline for Learning Under Concept Drift.
