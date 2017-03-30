@@ -14,7 +14,8 @@ def make_class_serializable(cls):
     :return:
     """
     global _registered_serializable_classes
-    _registered_serializable_classes.append(cls)
+    if cls not in _registered_serializable_classes:
+        _registered_serializable_classes.append(cls)
 
 
 class CustomJsonEncoder(json.JSONEncoder):

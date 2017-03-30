@@ -12,7 +12,7 @@ class Label(SerializableEnum):
     weekly = "weekly_label"
 
 
-class LearningMode(enumerate):
+class LearningMode(SerializableEnum):
     """
     We either run an experiment (e.g. to measure the performance of our learning pipeline
     or we run in a "live" mode - e.g. when we run in production

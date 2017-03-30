@@ -1,4 +1,4 @@
-from thesis_common.learning_pipeline import VenueMeasurementDetached
+from thesis_common.learning_pipeline import VenueMeasurementDetached, Label, LearningMode
 from thesis_common import CustomJsonEncoder, deserialize_obj_hook
 
 from unittest import TestCase
@@ -23,3 +23,17 @@ class TestVenueMeasurementDetached(TestCase):
         self.assertEqual(now, deserialized.timestamp_local)
         self.assertEqual(venue_name, deserialized.venue_name)
         self.assertEqual(capacity, deserialized.venue_capacity)
+
+
+class TestEnums(TestCase):
+    def test_serialize(self):
+        live = LearningMode.live
+        daily = Label.daily
+        dikt = {
+            "1": live,
+            "2": daily
+        }
+        json_str = json.dumps(dikt, cls=CustomJsonEncoder)
+        dikt_deserialized = json.loads(json_str, object_hook=deserialize_obj_hook)
+        self.assertEqual(live, dikt_deserialized['1'])
+        self.assertEqual(daily, dikt_deserialized['2'])

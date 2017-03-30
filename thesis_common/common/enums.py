@@ -21,7 +21,7 @@ def make_enum_serialazable(module_name):
     """
     global _registered_enums
     for enumName, enumCls in inspect.getmembers(sys.modules[module_name], inspect.isclass):
-        if issubclass(enumCls, SerializableEnum):
+        if issubclass(enumCls, SerializableEnum) and enumCls not in _registered_enums:
             _registered_enums.append(enumCls)
 
 
