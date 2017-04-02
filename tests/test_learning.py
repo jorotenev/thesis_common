@@ -1,6 +1,6 @@
 from thesis_common.learning_pipeline import VenueMeasurementDetached, Label, LearningMode
 from thesis_common import CustomJsonEncoder, deserialize_obj_hook
-
+from thesis_common import VenueInformation
 from unittest import TestCase
 from datetime import datetime as dt
 import json
@@ -37,3 +37,15 @@ class TestEnums(TestCase):
         dikt_deserialized = json.loads(json_str, object_hook=deserialize_obj_hook)
         self.assertEqual(live, dikt_deserialized['1'])
         self.assertEqual(daily, dikt_deserialized['2'])
+
+
+class TestPublicDataTypes(TestCase):
+    def test_venue_information(self):
+        now = dt.now()
+        venue_info = VenueInformation(newest_measurement_dt_local=now, newest_measurement_dt_utc=now,
+                                      oldest_measurement_dt_local=now, oldest_measurement_dt_utc=now,
+                                      number_of_entries=1)
+        json_str = json.dumps(venue_info, cls=CustomJsonEncoder)
+        deser = json.loads(json_str, object_hook=deserialize_obj_hook)
+
+        self.assertEqual(deser.newest_measurement_dt_local, now)
