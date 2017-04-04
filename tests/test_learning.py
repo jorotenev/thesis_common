@@ -44,7 +44,7 @@ class TestPublicDataTypes(TestCase):
         now = dt.now()
         venue_info = VenueInformation(newest_measurement_dt_local=now, newest_measurement_dt_utc=now,
                                       oldest_measurement_dt_local=now, oldest_measurement_dt_utc=now,
-                                      number_of_entries=1)
+                                      number_of_entries=1, venue_capacity=200)
         json_str = json.dumps(venue_info, cls=CustomJsonEncoder)
         deser = json.loads(json_str, object_hook=deserialize_obj_hook)
 

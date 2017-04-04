@@ -16,7 +16,7 @@ class VenueInformation(object):
         self.oldest_measurement_dt_local = oldest_measurement_dt_local
         self.newest_measurement_dt_utc = newest_measurement_dt_utc
         self.newest_measurement_dt_local = newest_measurement_dt_local
-        self.capacity = venue_capacity
+        self.venue_capacity = venue_capacity
         self.number_of_entries = number_of_entries
 
 

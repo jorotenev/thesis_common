@@ -5,13 +5,17 @@ from os import getenv
 
 
 class RedisAdapter(object):
-    def __init__(self):
+    def __init__(self,
+                 host=getenv('REDIS_HOST'),
+                 db=int(getenv("REDIS_DB")),
+                 port=int(getenv("REDIS_PORT", 6379)),
+                 decode_responses=True):
         # import here so that other script had the chance to adjust some of the config
 
-        self.r = RedisConnection(host=getenv('REDIS_HOST'),
-                                 db=int(getenv("REDIS_DB")),
-                                 port=int(getenv("REDIS_PORT", 6379)),
-                                 decode_responses=True)
+        self.r = RedisConnection(host=host,
+                                 db=db,
+                                 port=port,
+                                 decode_responses=decode_responses)
 
     def atomic_cylinders_enqueue(self, venue, cylinders_dikt):
         """
