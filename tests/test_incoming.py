@@ -4,6 +4,8 @@ from datetime import datetime as dt
 from thesis_common.incoming_pipeline import *
 import json
 
+from thesis_common.learning_pipeline import Label
+
 
 class TestSerializableEnum(TestCase):
     def test_venue_stream_type(self):
@@ -19,6 +21,15 @@ class TestSerializableEnum(TestCase):
         self.assertIn("some_number", convert_back)
         self.assertEqual(VenueStreamType.ABSOLUTE, convert_back['enum1'])
         self.assertEqual(EventStreamOperator.PLUS, convert_back['enum2'])
+
+    def test_from_name(self):
+        enum = VenueStreamType.ABSOLUTE
+        enum_name = enum.name
+
+        self.assertEqual(enum, VenueStreamType.from_name_to_enum(enum_name))
+        enum = Label.daily
+        enum_name = enum.name
+        self.assertEqual(enum, VenueStreamType.from_name_to_enum(enum_name))
 
 
 def create_raw_measurement():

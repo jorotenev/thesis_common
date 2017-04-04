@@ -32,6 +32,20 @@ class SerializableEnum(Enum):
     See `export_enum_classes()`.
     """
 
+    @classmethod
+    def from_name_to_enum(cls, name):
+        """
+        If the subclassing enum has attribute "Weekday.friday",
+        then passing as :name "firday", should return the Weekday.friday enum
+        :param name:
+        :return: instance of the enum with the same name
+        :raises ValueError: if the class of the enum doesn't have an attribute with this name
+        """
+        for enum in cls:
+            if enum.name == name:
+                return enum
+        raise ValueError("Enum [%s] has no attribute [%s]" % (cls.__name__, name))
+
 
 def _enum_classes():
     """
