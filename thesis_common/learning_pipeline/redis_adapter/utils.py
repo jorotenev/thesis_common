@@ -1,4 +1,4 @@
-from os import environ, putenv
+from os import environ
 
 
 def configure_redis_for_testing():
@@ -12,5 +12,5 @@ def configure_redis_for_testing():
     db_for_testing = int(environ[redis_db_for_testing_key])
 
     if int(environ[redis_db_key]) != db_for_testing:
-        print("Going to use redis db #1 during testing")
-    putenv(redis_db_key, str(db_for_testing))
+        print("Going to use redis db #%i during testing" % db_for_testing)
+    environ[redis_db_key] = str(db_for_testing)

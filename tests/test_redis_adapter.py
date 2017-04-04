@@ -1,4 +1,7 @@
 import json
+from time import sleep
+from multiprocessing import Process
+
 from thesis_common.learning_pipeline.redis_adapter import RedisAdapter, key, configure_redis_for_testing
 from thesis_common.learning_pipeline import Label
 from unittest import TestCase
@@ -7,10 +10,12 @@ from unittest import TestCase
 class TestRedisAdapter(TestCase):
     @classmethod
     def setUpClass(cls):
+
         configure_redis_for_testing()
+        cls.adapter = RedisAdapter()
+        cls.adapter.drop_db()
 
     def setUp(self):
-        self.adapter = RedisAdapter()
         # the underlying redis connection (python.redis)
         self.r = self.adapter.r
 
@@ -116,13 +121,21 @@ class TestRedisAdapter(TestCase):
         self.assertEqual(self.input_lists[0], queue_1)
         self.assertEqual(self.input_lists[1], queue_2)
 
-    def test_dequeue_from_cylinder_queue_of_venue(self):
+    def test_dequeue_from_cylinder_queue_of_venue_non_blocking(self):
         for label, input_list in zip(self.labels, self.input_lists):
-            dequeued = self.adapter.dequeue_from_cylinder_queue_of_venue(venue=self.venue, cylinder_label=label)
-            dequeued = json.loads(dequeued)
-            # if we deque from a queue, we get the oldest entry in the queue,
-            # which is the first element we addedt to the queue - the first element of the list
-            self.assertEqual(input_list[0], dequeued)
+            for i, el in enumerate(input_list):
+                dequeued = self.adapter.dequeue_from_cylinder_queue_of_venue(venue=self.venue, cylinder_label=label)
+                dequeued = json.loads(dequeued)
+                # if we deque from a queue, we get the oldest entry in the queue,
+                # which is the i element of the list
+                self.assertEqual(input_list[i], dequeued)
+
+        # all queues should be empty
+        # and non-blocking dequeue should return None
+        for label, input_list in zip(self.labels, self.input_lists):
+            size = self.adapter.get_size_of_cylinder_queue(venue=self.venue, cylinder=label)
+            self.assertEqual(0, size)
+            self.assertIsNone(self.adapter.dequeue_from_cylinder_queue_of_venue(venue=self.venue, cylinder_label=label))
 
     def test_get_venue_labels(self):
 
@@ -146,3 +159,76 @@ class TestRedisAdapter(TestCase):
             self.assertEqual(len(queue), self.adapter.get_size_of_cylinder_queue(self.venue, label))
             self.adapter.dequeue_from_cylinder_queue_of_venue(venue=self.venue, cylinder_label=label)
             self.assertEqual(len(queue) - 1, self.adapter.get_size_of_cylinder_queue(self.venue, label))
+
+    def test_dequeue_from_cylinder_queue_of_venue_blocking(self):
+        """
+        We want to ensure that the dequeueuing blocks
+        We put it in a Process to and check that the process is "blocked" (dequeue doesn't return immediately when queue is empty
+        """
+
+        self.deplete_all_queues(
+            depleter=lambda lbl: self.adapter.dequeue_from_cylinder_queue_of_venue(venue=self.venue,
+                                                                                   cylinder_label=lbl,
+                                                                                   blocking=True))
+        for label in self.labels:
+            p = Process(target=self.adapter.dequeue_from_cylinder_queue_of_venue,
+                        name="dequeue_process",
+                        kwargs={"venue": self.venue,
+                                "cylinder_label": label,
+                                "blocking": True})
+            self.ensure_blocking_dequeue_blocks(label=label, process=p)
+
+    def test_atomic_cylinders_dequeue(self):
+        for l1, l2 in zip(self.cyl_1_input_list, self.cyl_2_input_list):
+            result_dict = self.adapter.multiple_cylinders_dequeue(venue=self.venue,
+                                                                  cylinder_labels=[self.cyl_1_label, self.cyl_2_label])
+            self.assertEqual(l1, json.loads(result_dict[self.cyl_1_label]))
+            self.assertEqual(l2, json.loads(result_dict[self.cyl_2_label]))
+
+        self.ensure_all_queues_empty()
+        for l1, l2 in zip(self.cyl_1_input_list, self.cyl_2_input_list):
+            result_dict = self.adapter.multiple_cylinders_dequeue(venue=self.venue,
+                                                                  cylinder_labels=[self.cyl_1_label, self.cyl_2_label])
+            self.assertIsNone(result_dict[self.cyl_1_label])
+            self.assertIsNone(result_dict[self.cyl_2_label])
+
+    def ensure_blocking_dequeue_blocks(self, label, process):
+        """
+        For an **empty** queue of a cylinder with label `label`, ensure that a blocking dequeue() really blocks
+        and that enqueuing to the queue, will unblock the dequeue()
+        :param label: the label of cylinder
+        process: multiprocessing.Process - initialised process with the dequeue operation as target= and the necessary
+        args/kwargs of the target function.
+        :return: None
+        """
+        assert 0 == self.adapter.get_size_of_cylinder_queue(venue=self.venue,
+                                                            cylinder=label), "queue should be empty, for this test to make sense"
+
+        process.start()
+        sleep(.5)
+
+        self.assertTrue(process.is_alive(),
+                        "Process should still be alive, because the dequeue() is blocking and there's no data ")
+        # now let's add something to the queue and see if the process finishes
+        self.adapter.atomic_cylinders_enqueue(venue=self.venue, cylinders_dikt={label: "random data"})
+        process.join(timeout=.2)  # wait for the process 0.2 seconds to finish
+        self.assertFalse(process.is_alive(), "The dequeue() should have returned")
+        self.assertEqual(0, process.exitcode, "Process should exit with zero code to indicate it was successful")
+
+    def deplete_all_queues(self, depleter):
+        """
+        lambda, which takes just a label, and will dequeue from the queue with this label
+        :param depleter:
+        :return:
+        """
+        for label, input_list in zip(self.labels, self.input_lists):
+            for el in input_list:
+                dequeued = depleter(label)
+                self.assertEqual(el, json.loads(dequeued))
+
+        self.ensure_all_queues_empty()
+
+    def ensure_all_queues_empty(self):
+        for label in self.labels:
+            q_size = self.adapter.get_size_of_cylinder_queue(venue=self.venue, cylinder=label)
+            assert q_size == 0, "failed to deplete queue [%s]" % key(self.venue, label)
