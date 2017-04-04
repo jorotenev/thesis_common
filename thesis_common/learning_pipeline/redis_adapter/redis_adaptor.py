@@ -50,13 +50,13 @@ class RedisAdapter(object):
         cyl_labels = cylinders_dikt.keys()
         cylinder_lengths = [self.get_size_of_cylinder_queue(venue=venue, cylinder=cyl_label) for cyl_label in
                             cyl_labels]
-        # if len(set(cylinder_lengths)) != 1:
-        #     raise RuntimeError(
-        #         "The length of the queues for [{venue}] differ. queue lenghts:[{lenghts}]. keys:[{keys}]".format(
-        #             lenghts=cylinder_lengths,
-        #             venue=venue,
-        #             keys=cyl_labels
-        #         ))
+        if len(set(cylinder_lengths)) != 1:
+            raise RuntimeError(
+                "The length of the queues for [{venue}] differ. queue lenghts:[{lenghts}]. keys:[{keys}]".format(
+                    lenghts=cylinder_lengths,
+                    venue=venue,
+                    keys=cyl_labels
+                ))
 
     def multiple_cylinders_dequeue(self, venue, cylinder_labels):
         """
@@ -68,7 +68,8 @@ class RedisAdapter(object):
         have the same number of elements at all times.
         :param venue:
         :param cylinder_labels: strings
-        :return:  dict with keys the cylinder_labels, and values the dequequed elemnt for this cylinder label
+        :return:  dict with keys the cylinder_labels, and values the dequequed elemnt for this cylinder label.
+                  the value is None if the queue doesn't have entries
         :raises RuntimeError - if some queues returned a result and some didn't.
         """
 
