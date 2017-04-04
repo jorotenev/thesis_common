@@ -123,3 +123,20 @@ class TestRedisAdapter(TestCase):
             # if we deque from a queue, we get the oldest entry in the queue,
             # which is the first element we addedt to the queue - the first element of the list
             self.assertEqual(input_list[0], dequeued)
+
+    def test_get_venue_labels(self):
+
+        # note that the labels are represented by their string representations,
+        # and not the Enum.
+        # During normal usage, the response from the adapter should be deserialized via:
+        # json.loads(response, object_hook=thesis_common.deserialize_obj_hook)
+
+        # verify that the returned names of Label enums belong of an actual instance of the Label enum
+        possible_label_enum_names = [enum.name for enum in Label]
+        labels = self.adapter.get_venue_labels(venue=self.venue)
+        for returned_label in labels:
+            self.assertIn(returned_label, possible_label_enum_names)
+
+        # verifty that we receive back all the labels that we initially stored
+        expected_labels = self.labels
+        self.assertEqual(set(expected_labels), set(labels))

@@ -95,11 +95,39 @@ class RedisAdapter(object):
         if keys:
             self.r.delete(*keys)
 
+    def get_venue_labels(self, venue):
+        """
+        Return the names of all Labels used as keys for this venue
+        :param venue: venue name
+        :return: array of strings of the names of labels
+        """
+        venue_keys = self.r.keys(
+            key(venue, '') + "*")  ## gets all keys that have in the beginning the name of the venue
+        return [get_label_from_key(k) for k in venue_keys]  # return only the label
 
-def key(*args):
+
+key_separator = "____"
+
+
+def key(venue, cylinder):
     """
     make a redis composite key
     :param args - order matters, the parameters to use for the composite key
     :return: the string to be used as a key on the redis server
     """
-    return "____".join(args)
+    return key_separator.join([venue, cylinder])
+
+
+def split_key(key):
+    """
+    "agora_____daily" -> ['agora', 'daily']
+    """
+    return key.split(key_separator)
+
+
+def get_venue_from_key(key):
+    return split_key(key)[0]
+
+
+def get_label_from_key(key):
+    return split_key(key)[1]
