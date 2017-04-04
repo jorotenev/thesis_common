@@ -166,6 +166,7 @@ class RedisAdapter(object):
 
 
 key_separator = "____"
+redis_wildcard_sym = "*"
 
 
 def key(venue, cylinder):
@@ -190,3 +191,13 @@ def get_venue_from_key(key):
 
 def get_label_from_key(key):
     return split_key(key)[1]
+
+
+def venue_wildcard_key(venue):
+    """
+    When using the redis.keys command, use this function to get a wildcard key str which will match all cylinder keys
+    of :venue.
+    :param venue:
+    :return:
+    """
+    return key(venue, redis_wildcard_sym)
