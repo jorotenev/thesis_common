@@ -72,6 +72,9 @@ class RedisAdapter(object):
 
         return result
 
+    def get_size_of_cylinder_queue(self, venue, cylinder):
+        return self.r.llen(key(venue=venue, cylinder=cylinder))
+
     def get_cylinder_queue_of_venue(self, venue, cylinder):
         """
         Get the contents of a queue. The first element is the most recently enqueued

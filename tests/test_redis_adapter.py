@@ -140,3 +140,9 @@ class TestRedisAdapter(TestCase):
         # verifty that we receive back all the labels that we initially stored
         expected_labels = self.labels
         self.assertEqual(set(expected_labels), set(labels))
+
+    def test_get_size_of_cylinder_queue(self):
+        for label, queue in zip(self.labels, self.input_lists):
+            self.assertEqual(len(queue), self.adapter.get_size_of_cylinder_queue(self.venue, label))
+            self.adapter.dequeue_from_cylinder_queue_of_venue(venue=self.venue, cylinder_label=label)
+            self.assertEqual(len(queue) - 1, self.adapter.get_size_of_cylinder_queue(self.venue, label))
