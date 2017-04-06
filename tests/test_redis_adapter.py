@@ -1,10 +1,13 @@
 import json
 from time import sleep
 from multiprocessing import Process
-
-from thesis_common.learning_pipeline.redis_adapter import TrainingDataRedisAdapter, key, configure_redis_for_testing
+from datetime import datetime as dt, timedelta as td
+from thesis_common.learning_pipeline.redis_adapter import StoredPredictionsAdapter, TrainingDataRedisAdapter, key, \
+    venue_wildcard_key
+from thesis_common.learning_pipeline.redis_adapter import configure_redis_for_testing
 from thesis_common.learning_pipeline import Label
 from unittest import TestCase
+
 
 class TestTrainingDataRedisAdapter(TestCase):
     @classmethod
@@ -16,7 +19,7 @@ class TestTrainingDataRedisAdapter(TestCase):
 
     def setUp(self):
         # the underlying redis connection (python.redis)
-        self.r = self.adapter.r
+        self.raw_redis_client = self.adapter.r
 
         self.cyl_1_label = Label.daily.name
         self.cyl_2_label = Label.weekly.name
@@ -58,7 +61,7 @@ class TestTrainingDataRedisAdapter(TestCase):
         self.adapter.drop_db()
 
     def test_smoke_test(self):
-        self.assertTrue(self.r.ping())
+        self.assertTrue(self.raw_redis_client.ping())
 
     def test_atomic_cylinders_enqueue(self):
         """
@@ -76,11 +79,11 @@ class TestTrainingDataRedisAdapter(TestCase):
 
         # there are entries in the redis for both cylinders
         # and they are no other keys
-        self.assertEqual(set([self.key_cylinder_1, self.key_cylinder_2]), set(self.r.keys("*")))
+        self.assertEqual(set([self.key_cylinder_1, self.key_cylinder_2]), set(self.raw_redis_client.keys("*")))
 
         # let's assert the len of both queues is correct
-        self.assertEqual(len(self.cyl_1_input_list), self.r.llen(self.key_cylinder_1))
-        self.assertEqual(len(self.cyl_2_input_list), self.r.llen(self.key_cylinder_2))
+        self.assertEqual(len(self.cyl_1_input_list), self.raw_redis_client.llen(self.key_cylinder_1))
+        self.assertEqual(len(self.cyl_2_input_list), self.raw_redis_client.llen(self.key_cylinder_2))
 
         assert len(self.cyl_1_input_list) == len(self.cyl_2_input_list)
 
@@ -88,15 +91,15 @@ class TestTrainingDataRedisAdapter(TestCase):
         # it's a queue, thus if we start dequeuing, we should first see the [0] element of cyl_[1|2]_queue
         for snapshot_cyl_1, snapshot_cyl_2 in zip(self.cyl_1_input_list,
                                                   self.cyl_2_input_list):
-            dequeued_cyl_1_snapshot = json.loads(self.r.rpop(self.key_cylinder_1))
-            dequeued_cyl_2_snapshot = json.loads(self.r.rpop(self.key_cylinder_2))
+            dequeued_cyl_1_snapshot = json.loads(self.raw_redis_client.rpop(self.key_cylinder_1))
+            dequeued_cyl_2_snapshot = json.loads(self.raw_redis_client.rpop(self.key_cylinder_2))
 
             self.assertEqual(snapshot_cyl_1, dequeued_cyl_1_snapshot)
             self.assertEqual(snapshot_cyl_2, dequeued_cyl_2_snapshot)
 
         # we dequeued everything so the queue should be empty
-        self.assertEqual(0, self.r.llen(self.key_cylinder_1))
-        self.assertEqual(0, self.r.llen(self.key_cylinder_2))
+        self.assertEqual(0, self.raw_redis_client.llen(self.key_cylinder_1))
+        self.assertEqual(0, self.raw_redis_client.llen(self.key_cylinder_2))
 
     def test_get_cylinder_queue_of_venue(self):
 
@@ -231,3 +234,71 @@ class TestTrainingDataRedisAdapter(TestCase):
         for label in self.labels:
             q_size = self.adapter.get_size_of_cylinder_queue(venue=self.venue, cylinder=label)
             assert q_size == 0, "failed to deplete queue [%s]" % key(self.venue, label)
+
+
+class TestStoredPredictionsRedisAdapter(TestCase):
+    def setUp(self):
+        self.default_set_of_predictions = "this will normally be a json string with a map b/w datatime and an int prediction"
+        self.default_venue = "agora"
+        self.default_datetime_newest_training_data = dt.now()
+
+        # the key for the predictions we stored
+        self.key_for_oldest_predictions = self.add_set_of_predictions(offset_in_hours=0)
+
+    @classmethod
+    def setUpClass(cls):
+        configure_redis_for_testing()
+        cls.adapter = StoredPredictionsAdapter()
+        cls.adapter.drop_db()
+        cls.raw_redis_client = cls.adapter.r
+
+    def tearDown(self):
+        self.adapter.drop_db()
+
+    def test_store_predictions(self):
+        self.assertTrue(self.raw_redis_client.exists(self.key_for_oldest_predictions),
+                        "The set of predictions was not added under the expected key")
+        self.assertIsNotNone(self.raw_redis_client.get(self.key_for_oldest_predictions),
+                             "There's not content under key: %s" % self.key_for_oldest_predictions)
+
+    def test_add_avaialable_predictions(self):
+        key_of_auxiliary_data_structure = key(self.default_venue, StoredPredictionsAdapter._predictions_stack_tag)
+        self.assertEqual(1, self.raw_redis_client.llen(key_of_auxiliary_data_structure),
+                         "The auxilary list for the venue, doesn't any keys of predicitons for the venue")
+
+        self.assertEqual(self.key_for_oldest_predictions, self.raw_redis_client.lpop(key_of_auxiliary_data_structure),
+                         "The auxilary list for the venue, doesn't have the correct key of the newest prediciton")
+
+    def test_get_keys_of_available_predictions_for_venue(self):
+        # add new predictions for the venue
+        key_of_new_predictions = self.add_set_of_predictions(offset_in_hours=1)
+        self.assertEqual(key_of_new_predictions,
+                         self.adapter.get_keys_of_available_predictions_for_venue(venue=self.default_venue)[0],
+                         "the data structure hasn't got the key of the newest set of predictions")
+
+        self.assertEqual(self.key_for_oldest_predictions,
+                         self.adapter.get_keys_of_available_predictions_for_venue(venue=self.default_venue)[1],
+                         "the data structure hasn't got the key of the originally added set of predictions")
+
+    def test_get_key_of_newest_predictions(self):
+        key_of_new_predictions = self.add_set_of_predictions(offset_in_hours=1)
+        self.assertEqual(key_of_new_predictions, self.adapter.get_key_of_newest_predictions(venue=self.default_venue),
+                         "The returned key doesn't match the key of the expected newest set of prediction")
+
+    def test_get_predictions(self):
+        self.adapter.get_predictions(venue=self.default_venue, query_datetime=dt.now())
+
+    def add_set_of_predictions(self, offset_in_hours):
+        """
+        Add a new prediction for the default venue.
+        :param offset_in_hours: with how many ours to increase the datetime from the initially added predictions set.
+        :return: the key of the newly stored set of predictions
+        """
+        new_dt = self.default_datetime_newest_training_data + td(hours=offset_in_hours)
+        self.adapter.store_predictions(venue=self.default_venue,
+                                       # well it's the same but the content doesn't really matter
+                                       predictions=self.default_set_of_predictions,
+                                       datetime_newest_training=new_dt)
+
+        key_of_new_predictions = key(self.default_venue, new_dt.replace(microsecond=0).isoformat())
+        return key_of_new_predictions

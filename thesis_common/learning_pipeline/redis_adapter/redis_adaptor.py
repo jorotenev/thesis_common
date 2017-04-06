@@ -2,7 +2,7 @@
 # i've misspelled enqueue probably million times in this file.
 from redis import StrictRedis as RedisConnection
 from os import getenv
-from .utils import get_non_venue_part_of_key, key
+from .utils import get_non_venue_part_of_key, key, venue_wildcard_key
 
 
 class RedisAdapter(object):

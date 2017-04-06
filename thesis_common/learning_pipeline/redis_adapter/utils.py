@@ -39,10 +39,11 @@ def get_non_venue_part_of_key(key):
 
 def venue_wildcard_key(venue):
     """
-    When using the redis.keys command, use this function to get a wildcard key str which will match all cylinder keys
-    of :venue.
+    When using the redis.keys command, use this function to get a wildcard key str which will match all keys
+    of :venue. (assuming that the key was generate with calling key(venue, ...) - i.e. the name of the venue was first
+    argument)
     :param venue:
-    :return:
+    :return: e.g. "agora____*"
     """
     return key(venue, redis_wildcard_sym)
 
