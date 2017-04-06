@@ -2,17 +2,16 @@ import json
 from time import sleep
 from multiprocessing import Process
 
-from thesis_common.learning_pipeline.redis_adapter import RedisAdapter, key, configure_redis_for_testing
+from thesis_common.learning_pipeline.redis_adapter import TrainingDataRedisAdapter, key, configure_redis_for_testing
 from thesis_common.learning_pipeline import Label
 from unittest import TestCase
 
-
-class TestRedisAdapter(TestCase):
+class TestTrainingDataRedisAdapter(TestCase):
     @classmethod
     def setUpClass(cls):
 
         configure_redis_for_testing()
-        cls.adapter = RedisAdapter()
+        cls.adapter = TrainingDataRedisAdapter()
         cls.adapter.drop_db()
 
     def setUp(self):

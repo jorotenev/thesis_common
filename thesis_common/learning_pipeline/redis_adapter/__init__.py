@@ -1,2 +1,4 @@
-from .redis_adaptor import key, RedisAdapter
-from .utils import configure_redis_for_testing
+from .training_data_adapter import TrainingDataRedisAdapter
+from .stored_predictions_adopter import StoredPredictionsAdapter
+
+from .utils import *
