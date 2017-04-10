@@ -14,6 +14,7 @@ class TestSerializableEnum(TestCase):
             "enum2": EventStreamOperator.PLUS,
             "some_number": 1
         }
+
         json_str = json.dumps(example_data, cls=CustomJsonEncoder)
         convert_back = json.loads(json_str, object_hook=deserialize_obj_hook)
         self.assertIn("enum1", convert_back)
@@ -29,7 +30,7 @@ class TestSerializableEnum(TestCase):
         self.assertEqual(enum, VenueStreamType.from_name_to_enum(enum_name))
         enum = Label.daily
         enum_name = enum.name
-        self.assertEqual(enum, VenueStreamType.from_name_to_enum(enum_name))
+        self.assertEqual(enum, Label.from_name_to_enum(enum_name))
 
 
 def create_raw_measurement():

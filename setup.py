@@ -19,8 +19,9 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 2.7',
     ],
     packages=find_packages(),
-    install_requires=['python-dateutil', 'redis>=2.10.5']
+    install_requires=['python-dateutil', 'redis>=2.10.5','enum34>=1.1.6']
 
 )

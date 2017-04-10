@@ -1,4 +1,4 @@
-import enum
+
 
 from thesis_common import SerializableEnum, make_enum_serialazable
 
