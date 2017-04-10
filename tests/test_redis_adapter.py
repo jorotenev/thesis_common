@@ -240,7 +240,7 @@ class TestStoredPredictionsRedisAdapter(TestCase):
     def setUp(self):
         self.default_set_of_predictions = "this will normally be a json string with a map b/w datatime and an int prediction"
         self.default_venue = "agora"
-        self.default_datetime_newest_training_data = dt.now()
+        self.default_datetime_newest_training_data = dt.now().replace(microsecond=0)
 
         # the key for the predictions we stored
         self.key_for_oldest_predictions = self.add_set_of_predictions(offset_in_hours=0)
@@ -286,12 +286,16 @@ class TestStoredPredictionsRedisAdapter(TestCase):
                          "The returned key doesn't match the key of the expected newest set of prediction")
 
     def test_get_predictions(self):
-        self.adapter.get_predictions(venue=self.default_venue, query_datetime=dt.now())
-
+        # we've added predictions in the construct and the key under which they are stored.
+        prediction_dt, predictions = self.adapter.get_predictions(predictions_key=self.key_for_oldest_predictions)
+        
+        self.assertEqual(self.default_datetime_newest_training_data, prediction_dt, "The timestamp of the newest entry used to train the predictor model doesn't match the expected one")
+        self.assertEqual(predictions, self.default_set_of_predictions)
+        
     def add_set_of_predictions(self, offset_in_hours):
         """
         Add a new prediction for the default venue.
-        :param offset_in_hours: with how many ours to increase the datetime from the initially added predictions set.
+        :param offset_in_hours: with how many hours to increase the datetime from the initially added predictions set.
         :return: the key of the newly stored set of predictions
         """
         new_dt = self.default_datetime_newest_training_data + td(hours=offset_in_hours)

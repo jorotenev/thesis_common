@@ -1,6 +1,6 @@
 from .redis_adaptor import RedisAdapter
-from .utils import key
-
+from .utils import key, get_non_venue_part_of_key
+from dateutil.parser import parse
 
 class StoredPredictionsAdapter(RedisAdapter):
     # this tag is used together with the name of the venue
@@ -67,5 +67,19 @@ class StoredPredictionsAdapter(RedisAdapter):
         """
         return self.r.lindex(key(venue, self._predictions_stack_tag), 0)
 
-    def get_predictions(self, venue, query_datetime):
-        raise NotImplementedError()
+    def get_predictions(self, predictions_key):
+        """
+        Given a **single** key, returned from  `get_key_of_newest_predictions()` or `get_keys_of_available_predictions_for_venue()`,
+        return a the predictions stored under this key. Normally the predictions are for a fixed period of time.
+        The key has encoded the venue and the timestamp of the newest timestmap used to train the model, which produced the predictions.
+
+        :returns The funciton returns a tuple, where the first element is the timestamp of the newest training entry, and the second is a json encoded string.
+        """
+
+        predictions = self.r.get(predictions_key)
+        # we have the JSON with timestamp-prediction pairs.
+        # Let's also return the datetime, which is encoded within the key
+        dt_str = get_non_venue_part_of_key(predictions_key)
+        dt_obj = parse(dt_str)
+        return  (dt_obj, predictions)
+        
