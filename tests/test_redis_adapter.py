@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import json
 from time import sleep
 from multiprocessing import Process
@@ -288,10 +289,11 @@ class TestStoredPredictionsRedisAdapter(TestCase):
     def test_get_predictions(self):
         # we've added predictions in the construct and the key under which they are stored.
         prediction_dt, predictions = self.adapter.get_predictions(predictions_key=self.key_for_oldest_predictions)
-        
-        self.assertEqual(self.default_datetime_newest_training_data, prediction_dt, "The timestamp of the newest entry used to train the predictor model doesn't match the expected one")
+
+        self.assertEqual(self.default_datetime_newest_training_data, prediction_dt,
+                         "The timestamp of the newest entry used to train the predictor model doesn't match the expected one")
         self.assertEqual(predictions, self.default_set_of_predictions)
-        
+
     def add_set_of_predictions(self, offset_in_hours):
         """
         Add a new prediction for the default venue.

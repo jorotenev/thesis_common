@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from thesis_common.learning_pipeline import VenueMeasurementDetached, Label, LearningMode
 from thesis_common import CustomJsonEncoder, deserialize_obj_hook
 from thesis_common import VenueInformation
@@ -16,9 +17,9 @@ class TestVenueMeasurementDetached(TestCase):
                                        timestamp_local=now,
                                        venue_name=venue_name,
                                        venue_capacity=capacity)
-        json_str = json.dumps(obj, cls=CustomJsonEncoder)
+        json_str = json.dumps([obj], cls=CustomJsonEncoder)
 
-        deserialized = json.loads(json_str, object_hook=deserialize_obj_hook)
+        deserialized = json.loads(json_str, object_hook=deserialize_obj_hook)[0]
         self.assertEqual(num_people, deserialized.number_of_people)
         self.assertEqual(now, deserialized.timestamp_local)
         self.assertEqual(venue_name, deserialized.venue_name)

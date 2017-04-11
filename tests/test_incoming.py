@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from unittest import TestCase
 from thesis_common import CustomJsonEncoder, deserialize_obj_hook
 from datetime import datetime as dt

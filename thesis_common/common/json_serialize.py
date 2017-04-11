@@ -38,15 +38,8 @@ class CustomJsonEncoder(json.JSONEncoder):
 
 def deserialize_obj_hook(d):
     global _registered_serializable_classes
-    # convert the keys and values from unicode to str (this is needed for Python2.7 compatibility)
-    d_str = {}
-    for k, v in d.items():
-        k_str = str(k)
-        v_str = str(v)
 
-        d_str[k_str] = v_str
-
-    d = d_str
+    d = convert_dict_to_str(d)
     # see if the d has a serialized class that we manage (list could be empty!)
     managed_classes_in_dikt = [cls for cls in _registered_serializable_classes if _serialazable_cls_name(cls) in d]
 
@@ -64,6 +57,33 @@ def deserialize_obj_hook(d):
         return dateutil.parser.parse(d['__datetime__']).replace(tzinfo=None)
     else:
         return d
+
+
+def convert_dict_to_str(d):
+    """
+    Needed for python 2 compatibility.
+    Python 2 has both str and unicode, python 3 has just str
+    :param d:
+    :return: d, but with all unicode converted to str, if under python 2
+    """
+    import sys
+    if sys.version_info >= (3, 0):
+        # python 3 doesn't need any adjustments
+        return d
+
+    d_str = {}
+    for k, v in d.items():
+        # convert the keys and values from unicode to str (this is needed for Python2.7 compatibility)
+        k_str = k
+        v_str = v
+        if isinstance(k, unicode):
+            k_str = str(k)
+        if isinstance(v, unicode):
+            v_str = str(v)
+
+        d_str[k_str] = v_str
+
+    return d_str
 
 
 def _serialazable_cls_name(cls):
