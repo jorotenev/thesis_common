@@ -3,6 +3,7 @@ from .utils import key, get_non_venue_part_of_key
 from dateutil.parser import parse
 
 class StoredPredictionsAdapter(RedisAdapter):
+    
     # this tag is used together with the name of the venue
     # to form a key, under which the keys of the predictions for a venue are added. see _add_avaialable_predictions()
     _predictions_stack_tag = 'predictions'

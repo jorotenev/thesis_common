@@ -38,16 +38,14 @@ class CustomJsonEncoder(json.JSONEncoder):
 
 def deserialize_obj_hook(d):
     global _registered_serializable_classes
-    # convert input to str if needed
+    # convert the keys and values from unicode to str (this is needed for Python2.7 compatibility)
     d_str = {}
     for k, v in d.items():
-        k_str = k
-        v_str = v
-        if type(k) == unicode:
-            k_str = str(k)
-        if type(v) == unicode:
-            v_str = str(v)
+        k_str = str(k)
+        v_str = str(v)
+
         d_str[k_str] = v_str
+
     d = d_str
     # see if the d has a serialized class that we manage (list could be empty!)
     managed_classes_in_dikt = [cls for cls in _registered_serializable_classes if _serialazable_cls_name(cls) in d]
