@@ -5,7 +5,7 @@ some technical issues, like exceptions).
 import logging
 thesis_logger_name = 'thesis_logger'
 thesis_logger = logging.getLogger(thesis_logger_name)
-s = '%(asctime)s %(levelname)s:%(name)s %(message)s'.format(logger_name=thesis_logger_name)
+s = '%(asctime)s %(filename)s:%(module)s %(levelname)s:%(name)s %(message)s'
 formatter = logging.Formatter(s)
 handler = logging.StreamHandler()
 handler.setFormatter(formatter)
