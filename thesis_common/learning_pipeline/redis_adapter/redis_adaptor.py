@@ -3,6 +3,7 @@
 from redis import StrictRedis as RedisConnection
 from os import getenv
 from .utils import get_non_venue_part_of_key, key, venue_wildcard_key
+from thesis_common.common import thesis_logger
 
 
 class RedisAdapter(object):
@@ -23,6 +24,12 @@ class RedisAdapter(object):
         self.non_blocking_dequeue = lambda redis: redis.rpop
         self.blocking_dequeue = lambda redis: redis.brpop
         self.enqueue = lambda redis: redis.lpush
+        thesis_logger.debug("{name} started. db:#{db} host:{host} port:{port}".format(
+            name=self.__class__.__name__,
+            host=host,
+            db=db,
+            port=port,
+        ))
 
     def redis_is_up(self, ):
         try:
@@ -38,5 +45,3 @@ class RedisAdapter(object):
         keys = self.r.keys("*")
         if keys:
             self.r.delete(*keys)
-
-
