@@ -28,16 +28,25 @@ class TestVenueMeasurementDetached(TestCase):
 
 class TestEnums(TestCase):
     def test_serialize(self):
-        live = LearningMode.live
-        daily = Label.daily
+        label_dikt = {}
+        for lbl in Label:
+            label_dikt[str(lbl)] = lbl
+        mode_dikt = {}
+        for mode in LearningMode:
+            mode_dikt[str(mode)] = mode
+
         dikt = {
-            "1": live,
-            "2": daily
+            "labels": label_dikt,
+            "modes": mode_dikt
         }
         json_str = json.dumps(dikt, cls=CustomJsonEncoder)
         dikt_deserialized = json.loads(json_str, object_hook=deserialize_obj_hook)
-        self.assertEqual(live, dikt_deserialized['1'])
-        self.assertEqual(daily, dikt_deserialized['2'])
+        for lbl in Label:
+            self.assertIn(str(lbl), dikt_deserialized['labels'])
+            self.assertEqual(lbl, dikt_deserialized['labels'][str(lbl)])
+        for mode in LearningMode:
+            self.assertIn(str(mode), dikt_deserialized['modes'])
+            self.assertEqual(mode, dikt_deserialized['modes'][str(mode)])
 
 
 class TestPublicDataTypes(TestCase):

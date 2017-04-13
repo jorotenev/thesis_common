@@ -1,5 +1,3 @@
-
-
 from thesis_common import SerializableEnum, make_enum_serialazable
 
 
@@ -8,8 +6,11 @@ class Label(SerializableEnum):
     E.g. label daily on a cylinder means that this cylinder operates on data with scope day
     E.g. label daily on a kNN model means that the model is trained with data from a cylinder with a matching label
     """
+    hourly = 'hourly_label'
     daily = 'daily_label'
     weekly = "weekly_label"
+
+    historical = 'historical_label'
 
 
 class LearningMode(SerializableEnum):
