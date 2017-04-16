@@ -158,7 +158,7 @@ class Point(object):
 
 class DatePoint(Point):
     def __init__(self, datetime_object, y):
-        super().__init__(time.mktime(datetime_object.timetuple()), y)
+        super(DatePoint, self).__init__(time.mktime(datetime_object.timetuple()), y)
         self.datetime = datetime_object
 
 
