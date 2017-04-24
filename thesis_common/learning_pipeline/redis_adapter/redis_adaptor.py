@@ -6,9 +6,9 @@ from .utils import get_non_venue_part_of_key, key, venue_wildcard_key
 from thesis_common.common import thesis_logger
 
 
-def make_int(v):
+def stringify_int(v):
     try:
-        return int(v)
+        return str(int(v))
     except Exception as ex:
         return None
 
@@ -20,8 +20,8 @@ class RedisAdapter(object):
                  port=None,
                  decode_responses=True):
         host = host or getenv("REDIS_HOST")
-        db = make_int(db) or int(getenv("REDIS_DB"))
-        port = make_int(port) or int(getenv("REDIS_PORT", 6379))
+        db = stringify_int(db) or int(getenv("REDIS_DB"))  # "0" is a truthy value
+        port = stringify_int(port) or int(getenv("REDIS_PORT", 6379))
 
         self.r = RedisConnection(host=host,
                                  db=db,
