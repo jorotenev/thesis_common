@@ -7,7 +7,7 @@ from os import path
 
 setup(
     name='thesis_common',
-    version='0.2',
+    version='0.2.1',
     description='Common data structures, functions and modules for working with Venue data',
     long_description="Common data structures, functions and modules for working with Venue data",
     url='https://github.com/jorotenev/thesis_venue_common',
