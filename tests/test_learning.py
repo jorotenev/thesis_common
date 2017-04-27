@@ -25,6 +25,17 @@ class TestVenueMeasurementDetached(TestCase):
         self.assertEqual(venue_name, deserialized.venue_name)
         self.assertEqual(capacity, deserialized.venue_capacity)
 
+    def test_csv(self):
+        with open('example_file.csv', 'r') as file:
+            raw_file_lines = file.readlines()
+        from thesis_common.learning_pipeline import venue_measurements_from_csv
+        parsed_vms = list(venue_measurements_from_csv('example_file.csv'))
+        header_line, data_lines = raw_file_lines[0], raw_file_lines[1:]
+        self.assertEqual(len(data_lines), len(parsed_vms))
+        for raw_line, vm_parsed in zip(data_lines, parsed_vms):
+            raw_amount = int(raw_line.split(',')[2])
+            self.assertEqual(raw_amount, vm_parsed.number_of_people)
+
 
 class TestEnums(TestCase):
     def test_serialize(self):
