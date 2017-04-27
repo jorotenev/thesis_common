@@ -286,8 +286,13 @@ class TestStoredPredictionsRedisAdapter(TestCase):
         self.assertEqual(key_of_new_predictions, self.adapter.get_key_of_newest_predictions(venue=self.default_venue),
                          "The returned key doesn't match the key of the expected newest set of prediction")
 
+    def test_get_dt_from_key(self):
+        self.assertEqual(self.default_datetime_newest_training_data,
+                         self.adapter.get_datetime_part_of_key(self.key_for_oldest_predictions))
+
     def test_get_predictions(self):
         # we've added predictions in the construct and the key under which they are stored.
+
         prediction_dt, predictions = self.adapter.get_predictions(predictions_key=self.key_for_oldest_predictions)
 
         self.assertEqual(self.default_datetime_newest_training_data, prediction_dt,

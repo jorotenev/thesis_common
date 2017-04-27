@@ -31,7 +31,7 @@ def get_venue_from_key(key):
 def get_non_venue_part_of_key(key):
     """
     "agora____daily___something____else" -> '____daily___something____else'
-    :param key:
+    :param key: composite key (as returned by key())
     :return:
     """
     return key_separator.join(split_key(key)[1:])

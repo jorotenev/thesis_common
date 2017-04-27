@@ -2,8 +2,8 @@ from .redis_adaptor import RedisAdapter
 from .utils import key, get_non_venue_part_of_key
 from dateutil.parser import parse
 
+
 class StoredPredictionsAdapter(RedisAdapter):
-    
     # this tag is used together with the name of the venue
     # to form a key, under which the keys of the predictions for a venue are added. see _add_avaialable_predictions()
     _predictions_stack_tag = 'predictions'
@@ -68,6 +68,14 @@ class StoredPredictionsAdapter(RedisAdapter):
         """
         return self.r.lindex(key(venue, self._predictions_stack_tag), 0)
 
+    def get_datetime_part_of_key(self, composite_key):
+        from dateutil.parser import parse
+        try:
+            return parse(get_non_venue_part_of_key(composite_key))
+        except Exception as ex:
+            raise ValueError("From composite key '%s' a datetime object cannot be extracted. Exception: %s" % (
+                composite_key, str(ex)))
+
     def get_predictions(self, predictions_key):
         """
         Given a **single** key, returned from  `get_key_of_newest_predictions()` or `get_keys_of_available_predictions_for_venue()`,
@@ -80,7 +88,7 @@ class StoredPredictionsAdapter(RedisAdapter):
         predictions = self.r.get(predictions_key)
         # we have the JSON with timestamp-prediction pairs.
         # Let's also return the datetime, which is encoded within the key
-        dt_str = get_non_venue_part_of_key(predictions_key)
-        dt_obj = parse(dt_str)
-        return  (dt_obj, predictions)
-        
+        dt_obj = self.get_datetime_part_of_key(predictions_key)
+        # dt_str = get_non_venue_part_of_key(predictions_key)
+        # dt_obj = parse(dt_str)
+        return (dt_obj, predictions)
