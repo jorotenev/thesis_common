@@ -27,6 +27,9 @@ class RedisAdapter(object):
                                  db=db,
                                  port=port,
                                  decode_responses=decode_responses)
+        
+        # fail fast if we can't connect
+        self.r.ping()
 
         self.non_blocking_dequeue = lambda redis: redis.rpop
         self.blocking_dequeue = lambda redis: redis.brpop
