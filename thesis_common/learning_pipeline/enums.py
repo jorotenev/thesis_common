@@ -9,6 +9,7 @@ class Label(SerializableEnum):
     hourly = 'hourly_label'
     daily = 'daily_label'
     weekly = "weekly_label"
+    monthly = "monthly_label"
 
     historical = 'historical_label'
 
